@@ -1,0 +1,3 @@
+/home/lunlun/Desktop/211220165-经伦/build/CMakeFiles/turing.dir
+/home/lunlun/Desktop/211220165-经伦/build/CMakeFiles/edit_cache.dir
+/home/lunlun/Desktop/211220165-经伦/build/CMakeFiles/rebuild_cache.dir
