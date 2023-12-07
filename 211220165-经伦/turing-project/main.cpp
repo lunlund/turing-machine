@@ -44,7 +44,8 @@ int main(int argc, char* argv[]){
             //v mode
             tm=argv[2];
             input=argv[3];
-            cout<<"v mode"<<endl;
+            v_model(tm,input);
+            //cout<<"v mode"<<endl;
         }
         else if((string)argv[1]==(string)"-h"||(string)argv[1]==(string)"--help")
         {

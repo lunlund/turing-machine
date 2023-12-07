@@ -7,6 +7,13 @@
 using namespace std;
 Simulator simulator;
 V_state verbose;
+void space(int a)
+{
+    for(int i=0;i<a;i++)
+    {
+        cout<<" ";
+    }
+}
 vector<string> split(string a,char b)
 {
     vector<string> vec;
@@ -364,5 +371,243 @@ bool mode(string tm,string input)
 }
 bool v_model(string tm,string input)
 {
-    ;
+    if(init_Simulator(tm,input)==0)
+    {
+        return 0;
+    }
+    for(auto it=input.begin();it!=input.end();it++)
+    {
+        if(find(simulator.S.begin(),simulator.S.end(),(*it))==simulator.S.end())
+        {
+            cout<<"Input: "<<input<<endl;
+            cout<<"==================== ERR ===================="<<endl;
+            cout<<"error: Symbol "<<(*it)<<" in input is not defined in the set of input symbols"<<endl;
+            cout<<"Input: "<<input<<endl;
+            space(7+it-input.begin());
+            cout<<"^"<<endl;
+            cout<<"==================== END ===================="<<endl;
+            return 0;
+        }
+    }
+    cout<<"Input: "<<input<<endl;
+    cout<<"==================== RUN ===================="<<endl;
+    int flag=0;
+    int sum=5+(verbose.N<10)+2;
+    while(1)
+    {   
+        cout<<"Step";
+        space(sum-4);
+        cout<<": "<<verbose.step<<endl;
+
+        cout<<"State";
+        space(sum-5);
+        cout<<": "<<verbose.state<<endl;
+        
+        cout<<"Acc";
+        space(sum-3);
+        if(verbose.acc==0)
+        {
+            cout<<": No"<<endl;
+        }
+        else
+        {
+            cout<<": Yes"<<endl;
+        }
+            
+        for(int i=0;i<verbose.N;i++)
+        {
+            cout<<"Index"<<i;
+            if(i<10)
+            {
+                space(sum-6);
+            }
+            else
+            {
+                space(sum-7);
+            }
+            cout<<": ";
+            for(int j=verbose.ttape[i].index.start;j<=verbose.ttape[i].index.final;j++)
+            {
+                cout<<abs(j)<<" ";
+            }
+            cout<<endl;
+
+            cout<<"Tape"<<i;
+            if(i<10)
+            {
+                space(sum-5);
+            }
+            else
+            {
+                space(sum-6);
+            }
+            cout<<": ";
+            for(int j=verbose.ttape[i].index.start;j<=verbose.ttape[i].index.final;j++)
+            {
+                cout<<verbose.ttape[i].tape[j-verbose.ttape[i].index.start];
+                if(j<10)
+                {
+                    space(1);
+                }
+                else
+                {
+                    space(2);
+                }
+            }
+            cout<<endl;
+
+            cout<<"Head"<<i;
+            if(i<10)
+            {
+                space(sum-5);
+            }
+            else
+            {
+                space(sum-6);
+            }
+            cout<<": ";
+            for(int j=verbose.ttape[i].index.start;j<=verbose.ttape[i].index.final;j++)
+            {
+                if(j==verbose.ttape[i].head)
+                {
+                    cout<<"^";
+                    break;
+                }
+                if(j<10)
+                {
+                    space(2);
+                }
+                else
+                {
+                    space(3);
+                }
+            }
+            cout<<endl;
+        }
+        cout<<"---------------------------------------------"<<endl;
+        
+        if(find(simulator.F.begin(),simulator.F.end(),verbose.state)!=simulator.F.end())
+        {
+            flag=1;
+        }
+        int i=0;
+        //cout<<simulator.delta.size()<<endl;
+        for(;i<simulator.delta.size();i++)
+        {
+            //cout<<verbose.state<<endl;
+            if(simulator.delta[i].cur_state==verbose.state)
+            {
+                int j=0;
+                for(;j<verbose.N;j++)
+                {
+                    //cout<<verbose.ttape[j].tape[verbose.ttape[j].head-verbose.ttape[j].index.start]<<" "<<simulator.delta[i].cur_char[j]<<endl;
+                    if(verbose.ttape[j].tape[verbose.ttape[j].head-verbose.ttape[j].index.start]!=simulator.delta[i].cur_char[j]&&simulator.delta[i].cur_char[j]!='*')
+                    {
+                        //cout<<"here2"<<endl;
+                        //cout<<verbose.ttape[j].tape[verbose.ttape[j].head]<<"equals"<<simulator.delta[i].cur_char[j]<<endl;
+                        goto A;
+                    }
+                }
+                if(j==verbose.N)
+                {
+                    goto B;
+                }
+            }
+            A://change a delta
+            ;
+        }
+        if(i==simulator.delta.size())
+        {
+            //cout<<"halt"<<endl;
+            break;
+        }
+        //cout<<i<<"io"<<endl;
+        B://find this delta
+        //cout<<simulator.delta[i].cur_state<<" "<<simulator.delta[i].cur_char<<" "<<verbose.ttape[0].tape<<" "<<verbose.ttape[1].tape<<endl;
+        verbose.step++;
+        verbose.state=simulator.delta[i].new_state;
+        if(find(simulator.F.begin(),simulator.F.end(),verbose.state)==simulator.F.end())
+        {
+            verbose.acc=0;
+        }
+        else
+        {
+            verbose.acc=1;
+        }
+        for(int p=0;p<verbose.N;p++)
+        {    
+            if(simulator.delta[i].cur_char[p]=='*')
+            {
+                if(simulator.delta[i].new_char[p]=='*')
+                {
+                    ;
+                }
+                else
+                {
+                    verbose.ttape[p].tape[verbose.ttape[p].head-verbose.ttape[p].index.start]=simulator.delta[i].new_char[p];
+                }
+            }
+            else
+            {
+                verbose.ttape[p].tape[verbose.ttape[p].head-verbose.ttape[p].index.start]=simulator.delta[i].new_char[p];
+            }
+        }
+        for(int p=0;p<verbose.N;p++)
+        {
+            if(simulator.delta[i].direct[p]=='l')
+            {
+                verbose.ttape[p].head--;
+                if(verbose.ttape[p].head<verbose.ttape[p].index.start)
+                {
+                    verbose.ttape[p].index.start=verbose.ttape[p].head;
+                    verbose.ttape[p].tape='_'+verbose.ttape[p].tape;
+                }
+                // else if(verbose.ttape[p].head+1==verbose.ttape[p].index.final&&verbose.ttape[p].tape[verbose.ttape[p].index.final]=='_')
+                // {
+                //     verbose.ttape[p].index.final--;
+                //     verbose.ttape[p].tape.erase(verbose.ttape[p].tape.begin()+verbose.ttape[p].tape.size()-1);
+                // }
+            }
+            else if(simulator.delta[i].direct[p]=='r')
+            {
+                verbose.ttape[p].head++;
+                if(verbose.ttape[p].head>verbose.ttape[p].index.final)
+                {
+                    verbose.ttape[p].index.final=verbose.ttape[p].head;
+                    verbose.ttape[p].tape=verbose.ttape[p].tape+'_';
+                }
+                // else if(verbose.ttape[p].head-1==verbose.ttape[p].index.start&&verbose.ttape[p].tape[verbose.ttape[p].index.start]=='_')
+                // {
+                //     verbose.ttape[p].index.start++;
+                //     verbose.ttape[p].tape.erase(verbose.ttape[p].tape.begin());
+                // }
+            }
+            else
+            {
+                ;
+            }
+            if(verbose.ttape[p].tape[0]=='_'&&verbose.ttape[p].head!=verbose.ttape[p].index.start)
+            {
+                verbose.ttape[p].index.start++;
+                verbose.ttape[p].tape.erase(verbose.ttape[p].tape.begin());
+            }
+            else if(verbose.ttape[p].tape[verbose.ttape[p].index.final-verbose.ttape[p].index.start]=='_'&&verbose.ttape[p].head!=verbose.ttape[p].index.final)
+            {
+                verbose.ttape[p].index.final--;
+                verbose.ttape[p].tape.erase(verbose.ttape[p].tape.begin()+verbose.ttape[p].tape.size()-1);
+            }
+        }
+    }
+    if(flag==0)
+    {
+        cout<<"UNACCEPTED"<<endl;
+        cout<<"Result: "<<verbose.ttape[0].tape<<endl;
+    }
+    else
+    {
+        cout<<"ACCEPTED"<<endl;
+        cout<<"Result: "<<verbose.ttape[0].tape<<endl;
+    }
+    cout<<"==================== END ===================="<<endl;
+    return 1;
 }
