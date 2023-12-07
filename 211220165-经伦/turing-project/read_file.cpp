@@ -24,7 +24,7 @@ vector<string> split(string a,char b)
         if(a[j]==b||a[j]=='}')
         {
             vec.push_back(cur);
-            cout<<cur<<endl;
+            //cout<<cur<<endl;
             cur.clear();
         }
         else
@@ -160,8 +160,44 @@ bool init_Simulator(string tm,string input)
     {
         res+=(simulator.N[i]-'0')*pow(10,simulator.N.size()-i-1);
     }
+    verbose.N=res;
     //cout<<res<<"res"<<endl;
     verbose.ttape=new Tape[res];
+    verbose.state=simulator.q0;
+    if(find(simulator.F.begin(),simulator.F.end(),verbose.state)==simulator.F.end())
+    {
+        verbose.acc=0;
+    }
+    else
+    {
+        verbose.acc=1;
+    }
+    for(int i=0;i<res;i++)
+    {
+        if(i==0)
+        {
+            verbose.ttape[i].tape=input;
+            verbose.ttape[i].index.start=0;
+            if(input.size()!=0)
+            {
+                verbose.ttape[i].index.final=input.size()-1;
+            }
+            else
+            {
+                verbose.ttape[i].index.final=0;
+
+            }
+            verbose.ttape[i].head=0;
+        }
+        else
+        {
+            verbose.ttape[i].tape="_";
+            verbose.ttape[i].index.start=0;
+            verbose.ttape[i].index.final=0;
+            verbose.ttape[i].head=0;
+        }
+    }
+
     return 1;
 }
 bool mode(string tm,string input)
@@ -169,6 +205,112 @@ bool mode(string tm,string input)
     if(init_Simulator(tm,input)==0)
     {
         return 0;
+    }
+    int flag=0;
+    while(1)
+    {   
+        if(find(simulator.F.begin(),simulator.F.end(),verbose.state)!=simulator.F.end())
+        {
+            flag=1;
+        }
+        int i=0;
+        //cout<<simulator.delta.size()<<endl;
+        for(;i<simulator.delta.size();i++)
+        {
+            //cout<<verbose.state<<endl;
+            if(simulator.delta[i].cur_state==verbose.state)
+            {
+                int j=0;
+                for(;j<verbose.N;j++)
+                {
+                    //cout<<"here1"<<endl;
+                    if(verbose.ttape[j].tape[verbose.ttape[j].head-verbose.ttape[j].index.start]!=simulator.delta[i].cur_char[j]&&simulator.delta[i].cur_char[j]!='*')
+                    {
+                        //cout<<"here2"<<endl;
+                        //cout<<verbose.ttape[j].tape[verbose.ttape[j].head]<<"equals"<<simulator.delta[i].cur_char[j]<<endl;
+                        goto A;
+                    }
+                }
+                if(j==verbose.N)
+                {
+                    goto B;
+                }
+            }
+            A://change a delta
+            ;
+        }
+        if(i==simulator.delta.size())
+        {
+            //cout<<"halt"<<endl;
+            break;
+        }
+        //cout<<i<<"io"<<endl;
+        B://find this delta
+        //cout<<simulator.delta[i].cur_state<<" "<<simulator.delta[i].cur_char<<endl;
+        verbose.step++;
+        verbose.state=simulator.delta[i].new_state;
+        if(find(simulator.F.begin(),simulator.F.end(),verbose.state)==simulator.F.end())
+        {
+            verbose.acc=0;
+        }
+        else
+        {
+            verbose.acc=1;
+        }
+        for(int p=0;p<verbose.N;p++)
+        {    
+            if(simulator.delta[i].cur_char[p]=='*')
+            {
+                if(simulator.delta[i].new_char[p]=='*')
+                {
+                    ;
+                }
+                else
+                {
+                    verbose.ttape[p].tape[verbose.ttape[p].head-verbose.ttape[p].index.start]=simulator.delta[i].new_char[p];
+                }
+            }
+            else
+            {
+                verbose.ttape[p].tape[verbose.ttape[p].head-verbose.ttape[p].index.start]=simulator.delta[i].new_char[p];
+            }
+        }
+        for(int p=0;p<verbose.N;p++)
+        {
+            if(simulator.delta[i].direct[p]=='l')
+            {
+                verbose.ttape[p].head--;
+                if(verbose.ttape[p].head<verbose.ttape[p].index.start)
+                {
+                    verbose.ttape[p].index.start=verbose.ttape[p].head;
+                    verbose.ttape[p].tape='_'+verbose.ttape[p].tape;
+                }
+            }
+            else if(simulator.delta[i].direct[p]=='r')
+            {
+                verbose.ttape[p].head++;
+                if(verbose.ttape[p].head>verbose.ttape[p].index.final)
+                {
+                    verbose.ttape[p].index.final=verbose.ttape[p].head;
+                    verbose.ttape[p].tape=verbose.ttape[p].tape+'_';
+
+                }
+            }
+            else
+            {
+                ;
+            }
+            if(verbose.ttape[p].tape[verbose.ttape[p].index.start]=='_'&&verbose.ttape[p].head!=verbose.ttape[p].index.start)
+            {
+                verbose.ttape[p].index.start++;
+                verbose.ttape[p].tape.erase(verbose.ttape[p].tape.begin());
+            }
+            else if(verbose.ttape[p].tape[verbose.ttape[p].index.final]=='_'&&verbose.ttape[p].head!=verbose.ttape[p].index.final)
+            {
+                verbose.ttape[p].index.final--;
+                verbose.ttape[p].tape.erase(verbose.ttape[p].tape.begin()+verbose.ttape[p].tape.size()-1);
+            }
+        }
     }
     return 1;
 }

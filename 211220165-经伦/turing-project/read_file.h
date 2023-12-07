@@ -36,7 +36,7 @@ class Simulator
 };
 struct Double
 {
-    int start;
+    int start;///can be negtive but need to convert to postive
     int final;
 };
 struct Tape
@@ -48,13 +48,15 @@ struct Tape
 class V_state
 {
     public:
-    // V_state(int N)
-    // {
-    //     ttape=new Tape[N];
-    //     step=0;
-    //     state="";
-    //     acc=0;
-    // }
+    V_state()
+    {
+        ttape=NULL;
+        step=0;
+        state="";
+        acc=0;
+        N=0;
+    }
+    int N;
     int step;
     string state;
     bool acc;
