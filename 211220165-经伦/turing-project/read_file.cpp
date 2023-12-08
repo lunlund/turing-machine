@@ -26,13 +26,23 @@ vector<string> split(string a,char b)
             break;
         }
     }
-    for(int j=i+1;j<a.size();j++)
+    if(i==a.size())
+    {
+        cout<<"syntax error"<<endl;
+        exit(TURING_ERROR);
+    }
+    int j=i+1;
+    for(;j<a.size();j++)
     {
         if(a[j]==b||a[j]=='}')
         {
             vec.push_back(cur);
             //cout<<cur<<endl;
             cur.clear();
+            if(a[j]=='}')
+            {
+                break;
+            }
         }
         else
         {
@@ -40,30 +50,40 @@ vector<string> split(string a,char b)
             cur.push_back(a[j]);
         }
     }
+    if(j==a.size())
+    {
+        cout<<"syntax error"<<endl;
+        exit(TURING_ERROR);
+    }
     return vec;
 }
 bool init_Simulator(string tm,string input)
 {
     ifstream ifs;
-    ifs.open("palindrome_detector_2tapes.tm",ios::in);
+    ifs.open(tm,ios::in);
     //cout<<0<<endl;
     if(!ifs.is_open())
     {
         cout<<"syntax error"<<endl;
+        exit(FORMAT_ERROR);
         return 0;
     }
     //cout<<1<<endl;
     string buf;
+    int count=0;
     while(getline(ifs,buf))
     {
-        //cout<<"buf"<<buf<<endl;
-        if(buf.size()==0)
+        // cout<<buf.size()<<endl;
+        // cout<<buf;
+        // cout<<"kill"<<endl;
+        if(buf.size()==0||buf.size()==1)
         {
-            //cout<<"here"<<endl;
+            //cout<<"here525"<<endl;
             continue;
         }
         if(buf[0]=='#')
         {
+            count++;
             switch (buf[1])
             {
                 case 'Q':{
@@ -76,6 +96,11 @@ bool init_Simulator(string tm,string input)
                 vector<string> S=split(buf,',');
                 for(auto it=S.begin();it!=S.end();it++)
                 {
+                    if((*it).size()!=1)
+                    {
+                        cout<<"syntax error"<<endl;
+                        exit(TURING_ERROR);
+                    }
                     simulator.S.push_back((*it)[0]);
                 }
                 break;
@@ -85,6 +110,11 @@ bool init_Simulator(string tm,string input)
                 vector<string> G=split(buf,',');
                 for(auto it=G.begin();it!=G.end();it++)
                 {
+                    if((*it).size()!=1)
+                    {
+                        cout<<"syntax error"<<endl;
+                        exit(TURING_ERROR);
+                    }
                     simulator.G.push_back((*it)[0]);
                 }
                 break;
@@ -171,18 +201,33 @@ bool init_Simulator(string tm,string input)
         stringstream ss(buf);
         string a;
         vector<string> delta_;
+        //cout<<"here"<<buf<<buf.size()<<endl;
         while(ss>>a)
         {
-            //cout<<a<<endl;
+            //cout<<a<<"here1"<<endl;
             delta_.push_back(a);
         }
-        if(find(simulator.Q.begin(),simulator.Q.end(),delta_[0])!=simulator.Q.end())
+        if(delta_.size()>=5)
         {
-            
-            State new_(delta_[0],delta_[1],delta_[2],delta_[3],delta_[4]);
-            simulator.delta.push_back(new_);
+            if(find(simulator.Q.begin(),simulator.Q.end(),delta_[0])!=simulator.Q.end()&&find(simulator.Q.begin(),simulator.Q.end(),delta_[4])!=simulator.Q.end())
+            {
+                for(int mm=0;mm<delta_[1].size();mm++)
+                {
+                    if((find(simulator.G.begin(),simulator.G.end(),delta_[1][mm])==simulator.G.end()&&delta_[1][mm]!='*')||(delta_[2][mm]!='*'&&find(simulator.G.begin(),simulator.G.end(),delta_[2][mm])==simulator.G.end()))
+                    {
+                        exit(TURING_ERROR);
+                    }
+                }
+                State new_(delta_[0],delta_[1],delta_[2],delta_[3],delta_[4]);
+                simulator.delta.push_back(new_);
+            } 
             //cout<<delta_[0]<<delta_[1]<<delta_[2]<<delta_[3]<<delta_[4]<<endl;
         }
+    }
+    if(count!=7)
+    {
+        cout<<"syntax error"<<endl;
+        exit(TURING_ERROR);
     }
     int res=0;
     for(int i=0;i<simulator.N.size();i++)
@@ -241,6 +286,7 @@ bool mode(string tm,string input)
         if(find(simulator.S.begin(),simulator.S.end(),(*it))==simulator.S.end())
         {
             cout<<"illegal input string"<<endl;
+            exit(INPUT_ERROR);
             return 0;
         }
     }
@@ -386,6 +432,7 @@ bool v_model(string tm,string input)
             space(7+it-input.begin());
             cout<<"^"<<endl;
             cout<<"==================== END ===================="<<endl;
+            exit(INPUT_ERROR);
             return 0;
         }
     }
@@ -449,9 +496,17 @@ bool v_model(string tm,string input)
                 {
                     space(1);
                 }
-                else
+                else if(j>=10&&j<=99)
                 {
                     space(2);
+                }
+                else if(j>=100&&j<=999)
+                {
+                    space(3);
+                }
+                else
+                {
+                    space(4);
                 }
             }
             cout<<endl;
@@ -477,9 +532,17 @@ bool v_model(string tm,string input)
                 {
                     space(2);
                 }
-                else
+                else if(j>=10&&j<=99)
                 {
                     space(3);
+                }
+                else if(j>=100&&j<=999)
+                {
+                    space(4);
+                }
+                else
+                {
+                    space(5);
                 }
             }
             cout<<endl;

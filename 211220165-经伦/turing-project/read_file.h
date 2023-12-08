@@ -2,6 +2,9 @@
 #include<string>
 #include<vector>
 #include<cmath>
+#define FORMAT_ERROR 0
+#define INPUT_ERROR 1
+#define TURING_ERROR 2
 using namespace std;
 struct State
 {
