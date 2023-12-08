@@ -13,12 +13,7 @@ int main(int argc, char* argv[]){
         exit(FORMAT_ERROR);
         return 1;
     }
-    if((string)argv[0]!=(string)"./turing")
-    {   
-        cout<<"syntax error"<<endl;
-        exit(FORMAT_ERROR);
-        return 1;
-    }
+    
     if(argc==2)
     {
         if((string)argv[1]==(string)"-h"||(string)argv[1]==(string)"--help")
